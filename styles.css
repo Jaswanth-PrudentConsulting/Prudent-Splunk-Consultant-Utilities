@@ -2,16 +2,16 @@
 :root {
     --primary: #f97316; /* Orange */
     --primary-hover: #ea580c;
-    --brand-blue: #3b82f6; /* Brighter Blue for Dark Mode */
+    --brand-blue: #3b82f6;
     
     /* Backgrounds */
     --bg-body: #020617;
     --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
     
-    /* Text Colors (Light for Dark Mode) */
-    --text-main: #f8fafc;     /* Almost White */
-    --text-light: #94a3b8;    /* Slate 400 */
-    --text-muted: #64748b;    /* Slate 500 */
+    /* Text Colors */
+    --text-main: #f8fafc;     
+    --text-light: #94a3b8;    
+    --text-muted: #64748b;    
     
     /* Glass Components */
     --glass-surface: rgba(255, 255, 255, 0.03);
@@ -41,10 +41,9 @@ body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-gradien
     background-size: cover; 
 }
 
-/* Transparent Sidebar */
 .sidebar { 
     width: 260px; 
-    background: rgba(15, 23, 42, 0.4); /* Dark semi-transparent */
+    background: rgba(15, 23, 42, 0.4); 
     backdrop-filter: blur(15px); 
     display: flex; flex-direction: column; padding: 25px; 
     border-right: 1px solid var(--glass-border); 
@@ -73,7 +72,7 @@ body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-gradien
     background: linear-gradient(90deg, rgba(249, 115, 22, 0.2) 0%, transparent 100%); 
     color: var(--primary); 
     border-left: 3px solid var(--primary);
-    border-radius: 4px; /* Squared off for this style */
+    border-radius: 4px; 
 }
 
 .sidebar-footer { font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: auto; }
@@ -83,7 +82,7 @@ body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-gradien
 .view-section { display: none; width: 100%; max-width: 1100px; animation: fadeIn 0.5s ease-out; }
 .view-section.active { display: block; }
 
-/* Header Pill (Floating Glass) */
+/* Header Pill */
 .header-pill { 
     background: rgba(0, 0, 0, 0.2); 
     border: 1px solid var(--glass-border); 
@@ -98,11 +97,10 @@ body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-gradien
 .header-pill h1 { margin: 0; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; }
 .header-pill p { margin: 0; font-size: 0.85rem; color: var(--text-light); }
 
-/* Seamless Layout (No Boxes) */
+/* Layouts */
 .dashboard-grid { display: grid; gap: 40px; }
 .bulk-grid { grid-template-columns: 300px 1fr; }
 
-/* The "Card" is now transparent */
 .card { 
     background: transparent; 
     border-radius: 0; 
@@ -111,7 +109,6 @@ body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-gradien
     border: none; 
 }
 
-/* Titles with accent line */
 .card-title { 
     font-size: 0.9rem; font-weight: 700; color: var(--text-light); 
     margin-bottom: 25px; display: flex; align-items: center; gap: 10px; 
@@ -120,7 +117,7 @@ body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-gradien
 }
 .card-title i { color: var(--primary); }
 
-/* Inputs (Dark Glass) */
+/* Inputs */
 .input-group { margin-bottom: 20px; }
 label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
 
@@ -163,6 +160,29 @@ input::placeholder { color: rgba(255,255,255,0.2); }
 .drop-zone h3 { margin: 0 0 5px 0; font-size: 1.1rem; color: #fff; }
 .drop-zone p { margin: 0; color: var(--text-light); font-size: 0.9rem; }
 
+/* --- UPDATED: SAMPLE LINK STYLES --- */
+.sample-link-wrapper {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--glass-border);
+    width: 100%;
+    text-align: center;
+}
+/* CHANGED: Now using a neutral light grey (Slate 300) instead of bright colors */
+.sample-link {
+    color: #cbd5e1; 
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    margin-left: 5px;
+    transition: all 0.2s;
+}
+/* HOVER: turns orange */
+.sample-link:hover { 
+    color: var(--primary); 
+    text-decoration: underline; 
+}
+
 .file-list-container { margin-bottom: 25px; max-height: 200px; overflow-y: auto; }
 .file-item { 
     background: rgba(255,255,255,0.03); 
@@ -176,11 +196,11 @@ input::placeholder { color: rgba(255,255,255,0.2); }
 .remove-file-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1rem; padding: 5px; transition: color 0.2s; display: flex; align-items: center; }
 .remove-file-btn:hover { color: var(--error); }
 
-/* Buttons (Neon Orange) */
+/* Buttons */
 .primary-btn { 
     width: 100%; 
     background: var(--primary); 
-    color: #020617; /* Dark text on orange for contrast */
+    color: #020617; 
     border: none; border-radius: 12px; font-weight: 800; cursor: pointer; transition: all 0.2s; 
     box-shadow: 0 0 20px rgba(249, 115, 22, 0.2); 
     text-transform: uppercase; letter-spacing: 0.5px;

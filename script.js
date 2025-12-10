@@ -1,18 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
     
-    // --- TAB SWITCHING ---
-    window.switchTab = function(tabName, btn) {
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
-        const target = document.getElementById(`view-${tabName}`);
-        if(target) target.classList.add('active');
-    };
-
     // --- UTILS ---
-    window.showToast = function(msg) {
+    window.showToast = function(msg, isError = false) {
         const t = document.getElementById('toast');
-        if(t) { t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
+        if(t) { 
+            t.textContent = msg; 
+            t.style.background = isError ? '#ef4444' : '#fff';
+            t.style.color = isError ? '#fff' : '#000';
+            t.classList.add('show'); 
+            setTimeout(() => t.classList.remove('show'), 3000); 
+        }
     };
 
     window.copyText = function(elementId) {
@@ -20,7 +17,45 @@ document.addEventListener('DOMContentLoaded', () => {
         if(el) { navigator.clipboard.writeText(el.innerText).then(() => showToast("Copied to Clipboard!")); }
     };
 
-    // --- ADVANCED OPTIONS TOGGLE ---
+    // --- TAB SWITCHING ---
+    window.switchTab = function(tabName, btn) {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
+        const target = document.getElementById(`view-${tabName}`);
+        if(target) target.classList.add('active');
+        localStorage.setItem('prudent_last_tab', tabName);
+    };
+
+    // --- SESSION MEMORY ---
+    function restoreSession() {
+        const lastTab = localStorage.getItem('prudent_last_tab');
+        if(lastTab) {
+            const btn = document.querySelector(`.nav-btn[onclick*="'${lastTab}'"]`);
+            if(btn) window.switchTab(lastTab, btn);
+        }
+        const inputsToRestore = ['c-url', 'c-user', 'c-auth', 'b-operation-type'];
+        inputsToRestore.forEach(id => {
+            const val = localStorage.getItem(`prudent_${id}`);
+            const el = document.getElementById(id);
+            if(val && el) { 
+                el.value = val;
+                if(id === 'b-operation-type') updateTemplateLink();
+                if(id === 'c-auth') toggleAuth();
+            }
+        });
+    }
+
+    const inputsToSave = ['c-url', 'c-user', 'c-auth', 'b-operation-type'];
+    inputsToSave.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) {
+            el.addEventListener('input', () => localStorage.setItem(`prudent_${id}`, el.value));
+            el.addEventListener('change', () => localStorage.setItem(`prudent_${id}`, el.value));
+        }
+    });
+
+    // --- ADVANCED TOGGLE ---
     const btnAdvanced = document.getElementById('btn-advanced-toggle');
     const advancedSection = document.getElementById('advanced-options');
     if (btnAdvanced && advancedSection) {
@@ -31,9 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ==========================================
-    // TEMPLATE LOGIC
-    // ==========================================
+    // --- TEMPLATES ---
     window.updateTemplateLink = function() {
         const opType = document.getElementById('b-operation-type').value;
         const descDiv = document.getElementById('op-description');
@@ -44,10 +77,10 @@ document.addEventListener('DOMContentLoaded', () => {
             descDiv.innerHTML = "Generate <code>indexes.conf</code> stanzas. Upload CSV/Excel with: Index Name, Datatype, Retention, etc.";
         } else {
             advWrapper.classList.add('hidden');
-            if(opType === 'splunkbase') descDiv.innerHTML = "Bulk install Splunkbase apps. Upload with: <b>AppID</b>, <b>Version</b> (optional).";
-            if(opType === 'private_apps') descDiv.innerHTML = "Bulk install Private apps. Upload with: <b>PackagePath</b> (URL or local path).";
+            if(opType === 'splunkbase') descDiv.innerHTML = "Bulk install Splunkbase apps. Upload with: <b>AppID</b>, <b>Version</b>.";
+            if(opType === 'private_apps') descDiv.innerHTML = "Bulk install Private apps. Upload with: <b>PackagePath</b>.";
             if(opType === 'hec_tokens') descDiv.innerHTML = "Bulk create HEC Tokens. Upload with: <b>Name</b>, <b>Index</b>, <b>Source</b>.";
-            if(opType === 'ip_allowlist') descDiv.innerHTML = "Manage IP Allowlists. Upload with: <b>Feature</b> (e.g. search-api), <b>Subnets</b>.";
+            if(opType === 'ip_allowlist') descDiv.innerHTML = "Manage IP Allowlists. Upload with: <b>Feature</b>, <b>Subnets</b>.";
             if(opType === 'outbound_ports') descDiv.innerHTML = "Configure Outbound Ports. Upload with: <b>Port</b>, <b>Subnets</b>.";
             if(opType === 'maintenance_windows') descDiv.innerHTML = "Schedule Maintenance. Upload with: <b>Start (ISO)</b>, <b>Duration</b>.";
         }
@@ -55,13 +88,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getTemplateData() {
         const opType = document.getElementById('b-operation-type').value;
-        if(opType === 'indexes') return [["Index Name", "Datatype", "Max Data Size (MB)", "Searchable Days", "Retention Days", "Self Storage Bucket"], ["sales_logs", "Events", "500", "30", "365", "your-bucket/sales"], ["app_metrics", "Metrics", "100", "7", "90", "your-bucket/metrics"]];
-        if(opType === 'splunkbase') return [["AppID", "Version"], ["1234", "1.0.0"], ["5678", ""]];
-        if(opType === 'private_apps') return [["PackagePath"], ["http://example.com/app.tgz"], ["/tmp/my_app.tar.gz"]];
+        if(opType === 'indexes') return [["Index Name", "Datatype", "Max Data Size (MB)", "Searchable Days", "Retention Days", "Self Storage Bucket"], ["sales_logs", "Events", "500", "30", "365", "your-bucket/sales"]];
+        if(opType === 'splunkbase') return [["AppID", "Version"], ["1234", "1.0.0"]];
+        if(opType === 'private_apps') return [["PackagePath"], ["http://example.com/app.tgz"]];
         if(opType === 'hec_tokens') return [["Name", "Index", "Source", "SourceType"], ["my-hec-token", "main", "http:app", "json"]];
-        if(opType === 'ip_allowlist') return [["Feature", "Subnets"], ["search-api", "1.2.3.4/32"], ["hec-api", "10.0.0.0/24"]];
-        if(opType === 'outbound_ports') return [["Port", "Subnets"], ["8088", "192.168.1.0/24"], ["443", "10.0.0.5/32"]];
-        if(opType === 'maintenance_windows') return [["Start Time", "Duration (Mins)"], ["2025-10-01T02:00:00Z", "60"], ["2025-11-01T04:00:00Z", "30"]];
+        if(opType === 'ip_allowlist') return [["Feature", "Subnets"], ["search-api", "1.2.3.4/32"]];
+        if(opType === 'outbound_ports') return [["Port", "Subnets"], ["8088", "192.168.1.0/24"]];
+        if(opType === 'maintenance_windows') return [["Start Time", "Duration (Mins)"], ["2025-10-01T02:00:00Z", "60"]];
         return [];
     }
 
@@ -69,7 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = getTemplateData();
         const opType = document.getElementById('b-operation-type').value;
         const filename = `template_${opType}.${format}`;
-
         if (format === 'csv') {
             const csvContent = "data:text/csv;charset=utf-8," + data.map(e => e.join(",")).join("\n");
             const encodedUri = encodeURI(csvContent);
@@ -80,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
             link.click();
             document.body.removeChild(link);
         } else {
-            if(typeof XLSX === 'undefined') { alert('XLSX library not loaded. Check internet connection.'); return; }
+            if(typeof XLSX === 'undefined') { alert('XLSX library not loaded.'); return; }
             const ws = XLSX.utils.aoa_to_sheet(data);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Template");
@@ -95,6 +127,64 @@ document.addEventListener('DOMContentLoaded', () => {
     if(btnXlsx) btnXlsx.addEventListener('click', (e) => { e.preventDefault(); downloadTemplate('xlsx'); });
 
     // ==========================================
+    // PROPS BUILDER (SAFE)
+    // ==========================================
+    function generateProps() {
+        // Safe getter that prevents crash if input is missing
+        const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value.trim() : '';
+
+        let stanza = getVal('p-stanza');
+        const linebreaker = getVal('p-linebreaker');
+        const linemerge = getVal('p-linemerge');
+        const truncate = getVal('p-truncate');
+        
+        const timeprefix = getVal('p-timeprefix');
+        const timeformat = getVal('p-timeformat');
+        const lookahead = getVal('p-lookahead');
+        const tz = getVal('p-tz');
+        const charset = getVal('p-charset');
+
+        const category = getVal('p-category');
+        const description = getVal('p-description');
+
+        if(!stanza) return showToast("Please enter a Stanza Name!", true);
+
+        // Auto Add Brackets
+        if (!stanza.startsWith('[')) stanza = `[${stanza}`;
+        if (!stanza.endsWith(']')) stanza = `${stanza}]`;
+
+        let conf = `${stanza}\n`;
+        if(linebreaker) conf += `LINE_BREAKER = ${linebreaker}\n`;
+        if(linemerge) conf += `SHOULD_LINEMERGE = ${linemerge}\n`;
+        if(truncate) conf += `TRUNCATE = ${truncate}\n`;
+        
+        if(timeprefix || timeformat || lookahead || tz || charset) {
+            conf += `\n# Timestamp & Encoding\n`;
+            if(timeprefix) conf += `TIME_PREFIX = ${timeprefix}\n`;
+            if(timeformat) conf += `TIME_FORMAT = ${timeformat}\n`;
+            if(lookahead) conf += `MAX_TIMESTAMP_LOOKAHEAD = ${lookahead}\n`;
+            if(tz) conf += `TZ = ${tz}\n`;
+            if(charset) conf += `CHARSET = ${charset}\n`;
+        }
+
+        if(category || description) {
+            conf += `\n# UI Settings\n`;
+            if(category) conf += `category = ${category}\n`;
+            if(description) conf += `description = ${description}\n`;
+            conf += `pulldown_type = true\n`;
+        }
+
+        const out = document.getElementById('props-output');
+        if(out) out.textContent = conf;
+        showToast("Stanza Generated!");
+    }
+
+    // Explicitly attach listener if button exists
+    const btnProps = document.getElementById('btn-generate-props');
+    if(btnProps) btnProps.addEventListener('click', generateProps);
+
+
+    // ==========================================
     // BULK PROCESSOR ENGINE
     // ==========================================
     const fileInput = document.getElementById('file-input');
@@ -103,7 +193,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportInput = document.getElementById('export-filename');
     const previewFilename = document.getElementById('preview-filename');
     const processBtn = document.getElementById('process-btn');
-
     let uploadedFiles = [];
     let generatedOutput = null;
 
@@ -124,9 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updatePreview();
         }
     }
-
     window.removeFile = function(index) { uploadedFiles.splice(index, 1); renderFileList(); };
-
     function renderFileList() {
         if(!fileListContainer) return;
         fileListContainer.innerHTML = '';
@@ -139,13 +226,13 @@ document.addEventListener('DOMContentLoaded', () => {
             fileListContainer.appendChild(div);
         });
     }
-
     if(exportInput) exportInput.addEventListener('input', updatePreview);
     function updatePreview() { if(previewFilename) previewFilename.textContent = (exportInput.value.trim() || 'output') + '.json'; }
 
+    // --- MAIN GENERATE LOGIC ---
     if(processBtn) {
         processBtn.addEventListener('click', async () => {
-            if(uploadedFiles.length === 0) return showToast("Please upload a file first!");
+            if(uploadedFiles.length === 0) return showToast("Please upload a file first!", true);
             const opType = document.getElementById('b-operation-type').value;
             let finalData = [];
 
@@ -174,6 +261,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const allRowsArray = await Promise.all(uploadedFiles.map(f => readFile(f)));
             const flatRows = allRowsArray.flat();
+
+            for(let i=0; i<flatRows.length; i++) {
+                const r = flatRows[i];
+                if(opType === 'indexes') {
+                    if(r["Max Data Size (MB)"] && isNaN(r["Max Data Size (MB)"])) return showToast(`Row ${i+1}: Max Data Size must be a number!`, true);
+                }
+                if(opType === 'ip_allowlist') {
+                    const subnet = r["Subnets"];
+                    if(subnet && !subnet.match(/^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$/)) {
+                        return showToast(`Row ${i+1}: Invalid IP/CIDR format: ${subnet}`, true);
+                    }
+                }
+            }
 
             if(opType === 'indexes') {
                 const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
@@ -206,15 +306,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnDownload = document.getElementById('btn-download-json');
     if(btnDownload) btnDownload.addEventListener('click', () => { if(!generatedOutput) return showToast("Generate first!"); const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([generatedOutput], {type: 'application/json'})); link.download = (document.getElementById('export-filename').value.trim() || 'output') + '.json'; link.click(); });
 
-    // ==========================================
-    // CURL GENERATOR
-    // ==========================================
     window.toggleAuth = function() {
         const type = document.getElementById('c-auth').value;
-        const basic = document.getElementById('auth-basic');
-        const token = document.getElementById('auth-token');
-        if(basic) basic.classList.toggle('hidden', type !== 'basic');
-        if(token) token.classList.toggle('hidden', type !== 'token');
+        document.getElementById('auth-basic').classList.toggle('hidden', type !== 'basic');
+        document.getElementById('auth-token').classList.toggle('hidden', type !== 'token');
     };
 
     window.generateCurl = function() {
@@ -236,6 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('curl-result').classList.remove('hidden');
     };
 
+    restoreSession();
     window.updateTemplateLink();
     window.toggleAuth();
 });

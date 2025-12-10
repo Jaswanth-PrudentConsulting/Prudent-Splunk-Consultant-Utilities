@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // TEMPLATE LOGIC (CSV/XLSX)
+    // TEMPLATE LOGIC
     // ==========================================
     window.updateTemplateLink = function() {
         const opType = document.getElementById('b-operation-type').value;
@@ -47,7 +47,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if(opType === 'splunkbase') descDiv.innerHTML = "Bulk install Splunkbase apps. Upload with: <b>AppID</b>, <b>Version</b> (optional).";
             if(opType === 'private_apps') descDiv.innerHTML = "Bulk install Private apps. Upload with: <b>PackagePath</b> (URL or local path).";
             if(opType === 'hec_tokens') descDiv.innerHTML = "Bulk create HEC Tokens. Upload with: <b>Name</b>, <b>Index</b>, <b>Source</b>.";
-            if(opType === 'ip_allowlist') descDiv.innerHTML = "Manage IP Allowlists. Upload with: <b>Feature</b>, <b>Subnets</b>.";
+            if(opType === 'ip_allowlist') descDiv.innerHTML = "Manage IP Allowlists. Upload with: <b>Feature</b> (e.g. search-api), <b>Subnets</b>.";
+            if(opType === 'outbound_ports') descDiv.innerHTML = "Configure Outbound Ports. Upload with: <b>Port</b>, <b>Subnets</b>.";
+            if(opType === 'maintenance_windows') descDiv.innerHTML = "Schedule Maintenance. Upload with: <b>Start (ISO)</b>, <b>Duration</b>.";
         }
     };
 
@@ -58,6 +60,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if(opType === 'private_apps') return [["PackagePath"], ["http://example.com/app.tgz"], ["/tmp/my_app.tar.gz"]];
         if(opType === 'hec_tokens') return [["Name", "Index", "Source", "SourceType"], ["my-hec-token", "main", "http:app", "json"]];
         if(opType === 'ip_allowlist') return [["Feature", "Subnets"], ["search-api", "1.2.3.4/32"], ["hec-api", "10.0.0.0/24"]];
+        if(opType === 'outbound_ports') return [["Port", "Subnets"], ["8088", "192.168.1.0/24"], ["443", "10.0.0.5/32"]];
+        if(opType === 'maintenance_windows') return [["Start Time", "Duration (Mins)"], ["2025-10-01T02:00:00Z", "60"], ["2025-11-01T04:00:00Z", "30"]];
         return [];
     }
 
@@ -76,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
             link.click();
             document.body.removeChild(link);
         } else {
+            if(typeof XLSX === 'undefined') { alert('XLSX library not loaded. Check internet connection.'); return; }
             const ws = XLSX.utils.aoa_to_sheet(data);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Template");
@@ -114,7 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
         for(let i=0; i<fileList.length; i++) uploadedFiles.push(fileList[i]);
         renderFileList();
         if(uploadedFiles.length > 0 && exportInput && exportInput.value === '') {
-            exportInput.value = uploadedFiles[0].name.split('.').slice(0, -1).join('.');
+            const name = uploadedFiles[0].name;
+            exportInput.value = name.split('.').slice(0, -1).join('.');
             updatePreview();
         }
     }
@@ -170,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const flatRows = allRowsArray.flat();
 
             if(opType === 'indexes') {
-                const getVal = (id) => document.getElementById(id).value;
+                const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
                 const settings = {
                     datatype: getVal('b-datatype'), maxDataSizeMB: getVal('b-maxData'), searchableDays: getVal('b-searchDays'),
                     splunkArchivalRetentionDays: getVal('b-retention'), selfStorageBucketPath: getVal('b-bucket'),
@@ -180,21 +186,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     Object.keys(settings).forEach(k => { if(settings[k] && !row[k]) row[k] = settings[k]; });
                     return row;
                 });
-            } else if (opType === 'splunkbase') {
-                const apps = flatRows.map(r => {
-                    let obj = { "splunkbaseID": r["AppID"] || r["id"] };
-                    if(r["Version"]) obj["version"] = r["Version"];
-                    return obj;
-                });
-                finalData = { "apps": apps };
-            } else if (opType === 'private_apps') {
-                const apps = flatRows.map(r => ({ "appPackage": r["PackagePath"] || r["path"] }));
-                finalData = { "apps": apps };
-            } else if (opType === 'hec_tokens') {
-                finalData = flatRows.map(r => ({ "name": r["Name"], "index": r["Index"], "source": r["Source"], "sourcetype": r["SourceType"] }));
-            } else if (opType === 'ip_allowlist') {
-                finalData = flatRows.map(r => ({ "feature": r["Feature"], "subnets": r["Subnets"] ? r["Subnets"].split(';') : [] }));
-            }
+            } 
+            else if (opType === 'splunkbase') { finalData = { "apps": flatRows.map(r => ({ "splunkbaseID": r["AppID"] || r["id"], "version": r["Version"] })) }; }
+            else if (opType === 'private_apps') { finalData = { "apps": flatRows.map(r => ({ "appPackage": r["PackagePath"] || r["path"] })) }; }
+            else if (opType === 'hec_tokens') { finalData = flatRows.map(r => ({ "name": r["Name"], "index": r["Index"], "source": r["Source"], "sourcetype": r["SourceType"] })); }
+            else if (opType === 'ip_allowlist') { finalData = flatRows.map(r => ({ "feature": r["Feature"], "subnets": r["Subnets"] ? r["Subnets"].split(';') : [] })); }
+            else if (opType === 'outbound_ports') { finalData = flatRows.map(r => ({ "port": r["Port"], "subnets": r["Subnets"] ? r["Subnets"].split(';') : [] })); }
+            else if (opType === 'maintenance_windows') { finalData = flatRows.map(r => ({ "start": r["Start Time"], "duration": r["Duration (Mins)"] })); }
 
             generatedOutput = JSON.stringify(finalData, null, 4);
             document.getElementById('bulk-output').textContent = generatedOutput;
@@ -204,27 +202,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const btnCopy = document.getElementById('btn-copy-json');
-    if(btnCopy) btnCopy.addEventListener('click', () => { 
-        if(!generatedOutput) return showToast("Generate first!"); 
-        navigator.clipboard.writeText(generatedOutput).then(() => showToast("Copied!")); 
-    });
-
+    if(btnCopy) btnCopy.addEventListener('click', () => { if(!generatedOutput) return showToast("Generate first!"); navigator.clipboard.writeText(generatedOutput).then(() => showToast("Copied!")); });
     const btnDownload = document.getElementById('btn-download-json');
-    if(btnDownload) btnDownload.addEventListener('click', () => { 
-        if(!generatedOutput) return showToast("Generate first!"); 
-        const link = document.createElement('a'); 
-        link.href = URL.createObjectURL(new Blob([generatedOutput], {type: 'application/json'})); 
-        link.download = (document.getElementById('export-filename').value.trim() || 'output') + '.json'; 
-        link.click(); 
-    });
+    if(btnDownload) btnDownload.addEventListener('click', () => { if(!generatedOutput) return showToast("Generate first!"); const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([generatedOutput], {type: 'application/json'})); link.download = (document.getElementById('export-filename').value.trim() || 'output') + '.json'; link.click(); });
 
     // ==========================================
     // CURL GENERATOR
     // ==========================================
     window.toggleAuth = function() {
         const type = document.getElementById('c-auth').value;
-        document.getElementById('auth-basic').classList.toggle('hidden', type !== 'basic');
-        document.getElementById('auth-token').classList.toggle('hidden', type !== 'token');
+        const basic = document.getElementById('auth-basic');
+        const token = document.getElementById('auth-token');
+        if(basic) basic.classList.toggle('hidden', type !== 'basic');
+        if(token) token.classList.toggle('hidden', type !== 'token');
     };
 
     window.generateCurl = function() {
@@ -232,7 +222,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let url = document.getElementById('c-url').value.replace(/\/$/, "");
         if(document.getElementById('c-includePort').checked && !url.includes(':8089')) url += ":8089";
         
-        // GET API PATH (Smart Switch)i
         const endpointSelect = document.getElementById('c-endpoint');
         const selectedOption = endpointSelect.options[endpointSelect.selectedIndex];
         const apiPath = selectedOption.getAttribute('data-path') || "services";

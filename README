@@ -1,32 +1,62 @@
 # Prudent Consultant Suite
 
-**v4.3.1 | Unified Operations Engine**
+**v5.1.2 | Professional Edition**
 
-A professional, client-side toolkit designed for Splunk Consultants and Administrators. This suite streamlines the generation of configuration manifests (ACS) and API commands (REST) through a modern, responsive Glass UI.
+A unified, client-side operations suite designed for Splunk Consultants and Administrators. This toolkit streamlines the generation of configuration manifests (ACS), data onboarding stanzas (props.conf), and API commands (REST) through a modern "Glass UI".
 
 ## 🚀 Key Features
 
 ### 1. Bulk Operations Engine
-A single, unified interface to generate JSON configuration manifests from **CSV** or **Excel** data.
+A single interface to generate JSON configuration manifests from **CSV** or **Excel** data.
 * **Supported Operations:**
     * **Core:** Indexes, HEC Tokens.
     * **Apps:** Splunkbase Apps, Private Apps.
     * **Network:** IP Allowlists, Outbound Ports.
     * **System:** Maintenance Windows.
-* **Smart Templates:** Dynamically generates downloadable CSV/XLSX templates based on your selected operation.
-* **Validation:** Automatically handles data types and structures required by the Splunk ACS CLI.
+* **Smart Features:**
+    * **Dynamic Templates:** Automatically provides the correct CSV/XLSX template for your selected task.
+    * **Input Validation:** Scans files for errors (e.g., invalid CIDR formats, non-numeric retention) *before* processing to prevent ACS errors.
 
-### 2. Command Generator
-A GUI-based builder for constructing complex Splunk API requests without syntax errors.
-* **Dual API Support:** intelligently routes between **ACS (`/adminconfig/v2`)** and **REST (`/services`)** endpoints.
-* **Authentication:** Supports **Basic Auth** and **Bearer Token** (with auto-hiding fields).
-* **Library:** Includes comprehensive endpoints for:
-    * Admin Config Service (ACS) - Limits, Restarts, Private Connectivity, EMEK, etc.
-    * Knowledge Objects - Data Models, Saved Searches, Macros.
-    * System Admin - Users, Roles, Server Info.
+### 2. Props Builder (New!)
+A dedicated GUI tool for generating optimized `props.conf` stanzas for data onboarding.
+* **Capabilities:**
+    * Configure **Line Breaking** (`LINE_BREAKER`, `SHOULD_LINEMERGE`, `TRUNCATE`).
+    * Define **Timestamp Extraction** (`TIME_PREFIX`, `TIME_FORMAT`, `MAX_TIMESTAMP_LOOKAHEAD`).
+    * Set **Timezone & Encoding** (`TZ`, `CHARSET`).
+    * **Auto-Correction:** Automatically ensures stanza names are enclosed in square brackets `[]`.
 
-## 🛠️ Technology Stack
+### 3. Command Generator
+Construct complex Splunk API requests without syntax errors.
+* **Dual API Support:** Intelligently routes between **ACS (`/adminconfig/v2`)** and **REST (`/services`)** endpoints based on your selection.
+* **Library:** Includes 20+ endpoint categories covering Users, Roles, Limits, Restarts, and Knowledge Objects.
+* **Smart Auth:** Supports Basic Auth and Bearer Tokens (with auto-hiding fields).
 
-* **Frontend:** HTML5, CSS3 (Custom "Prudent Glass" Theme), Vanilla JavaScript (ES6+).
-* **Parsing:** [SheetJS (xlsx)](https://github.com/SheetJS/sheetjs) for client-side Excel processing.
-* **Design:** Fully responsive mobile-first layout with glassmorphism effects.
+## 🛠️ User Experience (UX)
+
+* **Session Memory:** The suite remembers your preferences (Base URL, Auth Type, Last Used Tab) between reloads so you don't have to re-type them.
+* **Glass UI:** A fully responsive, dark-mode interface designed for readability on Desktops, Tablets, and Mobile devices.
+
+## 📦 How to Use
+
+### Option 1: Hosted Version
+Access the suite directly via your GitHub Pages link:
+> **[Insert your GitHub Pages URL here]**
+
+### Option 2: Run Locally
+No installation or server is required. This application runs entirely in your browser.
+
+1.  Clone this repository:
+    ```bash
+    git clone [https://github.com/your-username/Prudent-Consultant-Suite.git](https://github.com/your-username/Prudent-Consultant-Suite.git)
+    ```
+2.  Open the folder.
+3.  Double-click **`index.html`** to launch it in Chrome, Edge, or Firefox.
+
+## 🔒 Security & Privacy
+
+* **Client-Side Execution:** All file processing (Excel/CSV parsing) and logic occur **locally within your browser**.
+* **Zero Data Exfiltration:** No customer data, credentials, or tokens are ever sent to an external server.
+* **Safe Storage:** "Session Memory" uses your browser's local storage to save non-sensitive preferences only. It explicitly **does not** save passwords or tokens.
+
+---
+*Prepared for Prudent Internal Use Only.*

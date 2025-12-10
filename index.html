@@ -21,6 +21,9 @@
                 <button class="nav-btn active" onclick="switchTab('bulk', this)">
                     <i class="fa-solid fa-layer-group"></i> Bulk Operations
                 </button>
+                <button class="nav-btn" onclick="switchTab('props', this)">
+                    <i class="fa-solid fa-file-code"></i> Props Builder
+                </button>
                 <button class="nav-btn" onclick="switchTab('curl', this)">
                     <i class="fa-solid fa-terminal"></i> Command Generator
                 </button>
@@ -28,19 +31,18 @@
 
             <div class="sidebar-footer">
                 <p>Internal Use Only</p>
-                <p style="opacity: 0.5;">v4.3.3 (Stable)</p>
+                <p style="opacity: 0.5;">v5.1.2 (Stable)</p>
             </div>
         </aside>
 
         <main class="content-area">
             
             <section id="view-bulk" class="view-section active">
-                
                 <div class="header-pill">
-                    <div class="pill-icon"><i class="fa-solid fa-cubes-stacked"></i></div>
+                    <div class="pill-icon"><i class="fa-solid fa-cubes"></i></div>
                     <div>
                         <h1>Bulk Operations</h1>
-                        <p>Generate configuration manifests from CSV/Excel data</p>
+                        <p>Generate configuration manifests with smart validation</p>
                     </div>
                 </div>
 
@@ -48,7 +50,6 @@
                     <div class="card settings-card">
                         <div class="card-title"><i class="fa-solid fa-sliders"></i> Operation Settings</div>
                         <form id="bulk-config-form">
-                            
                             <div class="input-group">
                                 <label>Operation Type</label>
                                 <div class="select-wrapper">
@@ -71,16 +72,13 @@
                                     </select>
                                 </div>
                             </div>
-
                             <div id="op-description" style="margin-bottom: 20px; font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
                                 Generate <code>indexes.conf</code> stanzas. Upload a CSV/Excel with: Index Name, Datatype, Retention, etc.
                             </div>
-
                             <div id="index-advanced-wrapper">
                                 <button type="button" id="btn-advanced-toggle" class="advanced-toggle">
                                     Index Properties <i class="fa-solid fa-chevron-down"></i>
                                 </button>
-
                                 <div id="advanced-options" class="advanced-section hidden">
                                     <div class="input-group"><label>Self Storage Bucket Path</label><input type="text" id="b-bucket" placeholder="your-bucket-path/"></div>
                                     <div class="divider-text">Path Overrides</div>
@@ -89,53 +87,96 @@
                                     <div class="input-group"><label>Thawed Path</label><input type="text" id="b-thawedPath" placeholder="$SPLUNK_DB/$_index_name/thaweddb"></div>
                                 </div>
                             </div>
-
                         </form>
                     </div>
 
                     <div class="card upload-card">
                         <div class="card-title"><i class="fa-solid fa-bolt"></i> Upload & Generate</div>
-                        
                         <div id="drop-zone" class="drop-zone">
                             <div class="cloud-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
                             <h3>Drag & Drop Files</h3>
                             <p>or click to select CSV / Excel</p>
-                            
                             <div class="sample-link-wrapper">
                                 <span style="opacity: 0.6; font-size: 0.8rem; margin-right: 5px;">Need a template?</span>
                                 <a href="#" id="btn-download-csv" class="sample-link"><i class="fa-solid fa-file-csv"></i> CSV</a>
                                 <span style="opacity: 0.3; margin: 0 5px;">|</span>
                                 <a href="#" id="btn-download-xlsx" class="sample-link"><i class="fa-solid fa-file-excel"></i> Excel</a>
                             </div>
-
                             <input type="file" id="file-input" accept=".xlsx, .xls, .csv" multiple style="display:none;">
                         </div>
-
                         <div id="file-list-container" class="file-list-container hidden"></div>
-
                         <button id="process-btn" class="primary-btn big-btn">
                             Generate JSON <i class="fa-solid fa-arrow-right"></i>
                         </button>
-
                         <div class="export-section">
                             <label>Export Filename</label>
                             <div class="filename-input-wrapper">
-                                <input type="text" id="export-filename" placeholder="output_filename">
-                                <span class="extension">.json</span>
+                                <input type="text" id="export-filename" placeholder="output_filename"><span class="extension">.json</span>
                             </div>
                         </div>
-
                         <div class="action-row">
                             <button id="btn-copy-json" class="action-btn btn-copy"><i class="fa-regular fa-copy"></i> Copy JSON</button>
                             <button id="btn-download-json" class="action-btn btn-download"><i class="fa-solid fa-download"></i> Download</button>
                         </div>
-
                         <div id="bulk-result" class="result-box hidden">
                             <div class="code-window">
                                 <div class="code-header">Generated Output</div>
                                 <pre id="bulk-output" class="code-block"></pre>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-props" class="view-section">
+                <div class="header-pill">
+                    <div class="pill-icon"><i class="fa-solid fa-file-code"></i></div>
+                    <div>
+                        <h1>Props Builder</h1>
+                        <p>Generate optimized data onboarding stanzas</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid bulk-grid">
+                    <div class="card settings-card">
+                        <div class="card-title"><i class="fa-solid fa-sliders"></i> Configuration</div>
+                        <div class="input-group">
+                            <label>Stanza Name (Sourcetype)</label>
+                            <input type="text" id="p-stanza" placeholder="[my_sourcetype]">
+                        </div>
+                        
+                        <div class="divider-text">Line Breaking</div>
+                        <div class="input-group"><label>LINE_BREAKER</label><input type="text" id="p-linebreaker" placeholder="([\r\n]+)"></div>
+                        <div class="input-group"><label>SHOULD_LINEMERGE</label>
+                            <select id="p-linemerge">
+                                <option value="false" selected>false (Recommended)</option>
+                                <option value="true">true</option>
+                            </select>
+                        </div>
+                        <div class="input-group"><label>TRUNCATE</label><input type="number" id="p-truncate" value="10000" placeholder="10000"></div>
+
+                        <div class="divider-text">Timestamp & Encoding</div>
+                        <div class="input-group"><label>TIME_PREFIX</label><input type="text" id="p-timeprefix" placeholder="^"></div>
+                        <div class="input-group"><label>TIME_FORMAT</label><input type="text" id="p-timeformat" placeholder="%Y-%m-%dT%H:%M:%S"></div>
+                        <div class="input-group"><label>MAX_TIMESTAMP_LOOKAHEAD</label><input type="number" id="p-lookahead" value="128" placeholder="128"></div>
+                        <div class="input-group"><label>TZ (Timezone)</label><input type="text" id="p-tz" placeholder="UTC"></div>
+                        <div class="input-group"><label>CHARSET</label><input type="text" id="p-charset" placeholder="UTF-8"></div>
+
+                        <div class="divider-text">UI Classification</div>
+                        <div class="input-group"><label>Category</label><input type="text" id="p-category" placeholder="Custom"></div>
+                        <div class="input-group"><label>Description</label><input type="text" id="p-description" placeholder="Logs from My App"></div>
+                    </div>
+
+                    <div class="card upload-card">
+                        <div class="card-title"><i class="fa-solid fa-code"></i> Generated Stanza</div>
+                        <div class="code-window" style="min-height: 300px; display: flex; flex-direction: column;">
+                            <div class="code-header">props.conf <button class="copy-tiny" onclick="copyText('props-output')">Copy</button></div>
+                            <pre id="props-output" class="code-block" style="flex: 1;"># Configuration will appear here...</pre>
+                        </div>
+                        
+                        <button id="btn-generate-props" class="primary-btn big-btn" style="margin-top: 20px;">
+                            Generate Stanza <i class="fa-solid fa-bolt"></i>
+                        </button>
 
                     </div>
                 </div>
@@ -165,7 +206,7 @@
                         <div class="input-group" style="flex: 2;">
                             <label>Base URL</label>
                             <input type="text" id="c-url" value="https://" placeholder="https://splunk-instance">
-                            <div class="checkbox-wrapper" style="margin-top: 8px;">
+                            <div class="checkbox-wrapper">
                                 <input type="checkbox" id="c-includePort" checked>
                                 <label for="c-includePort" style="font-size:0.8rem; font-weight:500; color:var(--text-light); cursor:pointer;">Append Port 8089</label>
                             </div>
@@ -179,7 +220,6 @@
                             </select>
                         </div>
                     </div>
-                    
                     <div id="auth-basic" class="auth-row hidden">
                         <div class="input-group"><label>Username</label><input type="text" id="c-user" placeholder="Enter your username"></div>
                         <div class="input-group"><label>Password</label><input type="password" id="c-pass" placeholder="Please enter password"></div>
@@ -193,7 +233,6 @@
                             <label>Target Endpoint</label>
                             <a href="https://docs.splunk.com/Documentation/Splunk/10.0.1/RESTREF/RESTprolog" target="_blank" style="font-size: 0.75rem; color: var(--primary); text-decoration: none;">View API Reference (10.0.1) <i class="fa-solid fa-external-link-alt"></i></a>
                         </div>
-                        
                         <select id="c-endpoint">
                             <optgroup label="ACS: Network & Security">
                                 <option value="access/outbound-ports" data-path="adminconfig/v2">access/outbound-ports (Configure Outbound Ports)</option>
@@ -204,18 +243,15 @@
                                 <option value="emek/key" data-path="adminconfig/v2">emek/key (Encryption Keys)</option>
                                 <option value="observability/sso-pairing" data-path="adminconfig/v2">observability/sso-pairing (Unified Identity)</option>
                             </optgroup>
-
                             <optgroup label="ACS: Apps & Content">
                                 <option value="apps/victoria" data-path="adminconfig/v2">apps/victoria (Manage Apps)</option>
                                 <option value="permissions/apps" data-path="adminconfig/v2">permissions/apps (App Permissions)</option>
                                 <option value="apps/victoria/download/{app_id}" data-path="adminconfig/v2">apps/download (Export Apps)</option>
                             </optgroup>
-
                             <optgroup label="ACS: Data & Storage">
                                 <option value="indexes" data-path="adminconfig/v2">indexes (Manage Indexes)</option>
                                 <option value="cloud-resources/self-storage-locations/buckets" data-path="adminconfig/v2">self-storage-locations (DDSS)</option>
                             </optgroup>
-
                             <optgroup label="ACS: System Administration">
                                 <option value="limits" data-path="adminconfig/v2">limits (Limits.conf)</option>
                                 <option value="maintenance-windows/schedules" data-path="adminconfig/v2">maintenance-windows/schedules</option>
@@ -224,14 +260,12 @@
                                 <option value="deployment/retry" data-path="adminconfig/v2">deployment/retry (Retry Failed Ops)</option>
                                 <option value="python-runtime" data-path="adminconfig/v2">python-runtime</option>
                             </optgroup>
-
                             <optgroup label="REST: Knowledge Objects">
                                 <option value="datamodel/model" data-path="services">datamodel/model</option>
                                 <option value="saved/searches" data-path="services">saved/searches (Reports/Alerts)</option>
                                 <option value="configs/conf-macros" data-path="services">configs/conf-macros</option>
                                 <option value="search/tags" data-path="services">search/tags</option>
                             </optgroup>
-
                             <optgroup label="REST: System">
                                 <option value="server/info" data-path="services">server/info</option>
                                 <option value="authentication/users" data-path="services">authentication/users (Manage Users)</option>
@@ -239,7 +273,6 @@
                             </optgroup>
                         </select>
                     </div>
-                    
                     <button class="primary-btn big-btn" onclick="generateCurl()">Generate Command <i class="fa-solid fa-code"></i></button>
                     <div id="curl-result" class="result-box hidden">
                         <div class="card-title" style="margin-top:20px;"><i class="fa-solid fa-terminal"></i> Result</div>
